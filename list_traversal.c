@@ -21,30 +21,30 @@ struct Node {
 
 void random_shuffle(Node** list, Int N)
 {
-#ifdef GEM5_BUILD
-    printf("dumping stats\n");
-    m5_dump_reset_stats(0,0);
-#elif GEM5_ZRAY_BUILD
-    printf("dumping stats\n");
-    m5_dump_reset_stats(0,0);
-#pragma begin_instrument 5
-#else
-#pragma begin_instrument 5
-#endif
+//#ifdef GEM5_BUILD
+//    printf("dumping stats\n");
+//    m5_dump_reset_stats(0,0);
+//#elif GEM5_ZRAY_BUILD
+//    printf("dumping stats\n");
+//    m5_dump_reset_stats(0,0);
+//#pragma begin_instrument 5
+//#else
+//#pragma begin_instrument 5
+//#endif
 	for (Int i=0; i<N-1; ++i) {
 		Int swap_ix = i + rand() % (N-i);
 		Node* tmp = list[swap_ix];
 		list[swap_ix] = list[i];
 		list[i] = tmp;
 	}
-#ifdef GEM5_BUILD 
-    m5_dump_reset_stats(0,0);
-#elif GEM5_ZRAY_BUILD
-#pragma end_instrument 15
-    m5_dump_reset_stats(0,0);
-#else
-#pragma end_instrument 15
-#endif
+//#ifdef GEM5_BUILD 
+//    m5_dump_reset_stats(0,0);
+//#elif GEM5_ZRAY_BUILD
+//#pragma end_instrument 15
+//    m5_dump_reset_stats(0,0);
+//#else
+//#pragma end_instrument 15
+//#endif
 }
 
 // Returns nanoseconds per element.
@@ -101,7 +101,6 @@ double bench(Int N, Int iters) {
 	Int dur = clock() - start;
 	double ns = 1e9 * dur / CLOCKS_PER_SEC;
 
-	return ns / (N * iters);
 #ifdef GEM5_BUILD 
     m5_dump_reset_stats(0,0);
 #elif GEM5_ZRAY_BUILD
@@ -110,6 +109,8 @@ double bench(Int N, Int iters) {
 #else
 #pragma end_instrument 10
 #endif
+
+	return ns / (N * iters);
 }
 
 
@@ -126,16 +127,16 @@ int main(int argc, const char * argv[])
 	Int min = stopsPerFactor * minElemensFactor;
 	Int max = stopsPerFactor * maxElemsFactor;
 
-#ifdef GEM5_BUILD
-    printf("dumping stats\n");
-    m5_dump_reset_stats(0,0);
-#elif GEM5_ZRAY_BUILD
-    printf("dumping stats\n");
-    m5_dump_reset_stats(0,0);
-#pragma begin_instrument 15
-#else
-#pragma begin_instrument 15
-#endif
+//#ifdef GEM5_BUILD
+//    printf("dumping stats\n");
+//    m5_dump_reset_stats(0,0);
+//#elif GEM5_ZRAY_BUILD
+//    printf("dumping stats\n");
+//    m5_dump_reset_stats(0,0);
+//#pragma begin_instrument 15
+//#else
+//#pragma begin_instrument 15
+//#endif
 	for (Int ei=min; ei<=max; ++ei) {
 		Int N = (Int)floor(pow(2.0, (double)ei / stopsPerFactor) + 0.5);
 		//Int reps = elemsPerMeasure / N;
@@ -144,12 +145,12 @@ int main(int argc, const char * argv[])
 		double ans = bench(N, reps);
 		printf("%llu   %f   # (N=%llu, reps=%llu) %llu/%llu\n", N*sizeof(Node), ans, N, reps, ei-min+1, max-min+1);
 	}
-#ifdef GEM5_BUILD 
-    m5_dump_reset_stats(0,0);
-#elif GEM5_ZRAY_BUILD
-#pragma end_instrument 15
-    m5_dump_reset_stats(0,0);
-#else
-#pragma end_instrument 15
-#endif
+//#ifdef GEM5_BUILD 
+//    m5_dump_reset_stats(0,0);
+//#elif GEM5_ZRAY_BUILD
+//#pragma end_instrument 15
+//    m5_dump_reset_stats(0,0);
+//#else
+//#pragma end_instrument 15
+//#endif
 }
