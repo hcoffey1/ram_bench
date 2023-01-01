@@ -23,7 +23,7 @@ endif
 
 #flags=-ggdb #If we want debugging symbols
 ifeq ($(MACHINE_ARCH),x86_64)
-flags=-fxray-instrument -Xclang -disable-O0-optnone -I$(GEM5_PATH)/include -L$(GEM5_PATH)/util/m5/build/x86/out -lm5
+flags=-fxray-instrument -Xclang -disable-O0-optnone -I$(GEM5_PATH)/include -L$(GEM5_PATH)/util/m5/build/x86/out
 else ifeq ($(MACHINE_ARCH), riscv64)
 flags=-fxray-instrument -Xclang -disable-O0-optnone -I/usr/include/riscv64-linux-gnu -march=rv64g -msmall-data-limit=0 -latomic
 endif
@@ -46,7 +46,8 @@ endif
 ifeq ($(MAKECMDGOALS), gem5)
 	$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) --debug-pass=Arguments  -S < tmp_$<.ll > $@
 else
-	$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) -load $(ZRAY_BIN_PATH)/tool.so -tool_pass --debug-pass=Arguments  -S < tmp_$<.ll > $@
+	#$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) -load $(ZRAY_BIN_PATH)/tool.so -tool_pass --debug-pass=Arguments  -S < tmp_$<.ll > $@
+	$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) --debug-pass=Arguments  -S < tmp_$<.ll > $@
 endif
 
 $(ZRAY_BIN_PATH)/%: %.ll $(ZRAY_BIN_PATH)/tool_dyn.ll
@@ -56,12 +57,12 @@ $(ZRAY_BIN_PATH)/%: %.ll $(ZRAY_BIN_PATH)/tool_dyn.ll
 ifeq ($(MAKECMDGOALS), gem5)
 	$(CUSTOM_CC) -o $@ linked_$<.ll -std=c++14 $(flags)
 else
-	$(CUSTOM_CC) -o $@_tmp linked_$<.ll -std=c++14 $(flags)
-	zip tool_file.zip tool_file
-	cat $@_tmp tool_file.zip > $@
-	chmod +x $@
-	#Cleanup
-	rm $@_tmp tool_file tool_file.zip
+	$(CUSTOM_CC) -o $@ linked_$<.ll -std=c++14 $(flags)
+	#zip tool_file.zip tool_file
+	#cat $@_tmp tool_file.zip > $@
+	#chmod +x $@
+	##Cleanup
+	#rm $@_tmp tool_file tool_file.zip
 endif
 
 .PHONY: gem5 gem5_zray
