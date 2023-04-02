@@ -10,7 +10,8 @@
 #include "gem5/m5ops.h"
 #endif
 
-typedef uint64_t Int;
+//Originally uint64_t, lack of signage causing crash, need to check out
+typedef int64_t Int;
 
 typedef struct Node Node;
 
@@ -121,7 +122,7 @@ int main(int argc, const char * argv[])
 
 	Int stopsPerFactor = 4; // For every power of 2, how many measurements do we do?
 	Int minElemensFactor = 6;  // First measurement is 2^this number of elements.
-	Int maxElemsFactor = 26; // Last measurement is 2^this number of elements. 30 == 16GB of memory
+	Int maxElemsFactor = 23; // Last measurement is 2^this number of elements. 30 == 16GB of memory
 	//Int elemsPerMeasure = Int(1) << 28; // measure enough times to process this many elements (to get a good average)
 
 	Int min = stopsPerFactor * minElemensFactor;
