@@ -5,6 +5,16 @@
 		../bin/mem \
 		../bin/nestedLoop
 
+#muslcPath="../muslc"
+#muslcFiles=$(muslcPath)/rand.ll $(muslcPath)/atol.ll $(muslcPath)/strtol.ll $(muslcPath)/shgetc.ll $(muslcPath)/intscan.ll
+
+#muslcFiles = ./muslc/gettimeofday.ll
+#muslcFiles = ./muslc/gettimeofday.ll ./muslc/printf.ll 
+#muslcFiles = ./muslc/gettimeofday.ll ./muslc/printf.ll ./muslc/puts.ll ./muslc/__lockfile.ll
+#muslcPath=/media/hdd0/research/shared/musl-1.2.3
+
+#muslcInclude=-I$(muslcPath)/src/internal -I$(muslcPath)/include -I$(muslcPath)/obj/include -I$(muslcPath)/arch/x86_64 -I$(muslcPath)/arch/generic -I$(muslcPath)/obj/src/internal
+
 #Currently tested case
 targets=$(ZRAY_BIN_PATH)/list_traversal
 
@@ -35,6 +45,8 @@ $(ZRAY_BIN_PATH):
 #Test programs
 %.ll: %.cc $(ZRAY_BIN_PATH)/tool.so
 	$(CUSTOM_CC) -o tmp_$<.ll $< -std=c++14 $(CFLAGS) $(flags) $(optLevel) -S -emit-llvm -fverbose-asm 
+	$(CUSTOM_LINK) -o tmp_$<.ll tmp_$<.ll $(muslcFiles) -I$(muslPath)/include -I$(muslPath)/src/internal
+
 ifeq ($(MAKECMDGOALS), gem5)
 	$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) --debug-pass=Arguments  -S < tmp_$<.ll > $@
 else
@@ -42,12 +54,12 @@ else
 endif
 
 %.ll: %.c $(ZRAY_BIN_PATH)/tool.so
-	$(CUSTOM_C) -o tmp_$<.ll $< $(CFLAGS) $(flags) $(optLevel) -S -emit-llvm -fverbose-asm 
+	$(CUSTOM_C) -o tmp_$<.ll $< $(CFLAGS) $(flags) $(optLevel) -S -emit-llvm -fverbose-asm $(muslcInclude)
+	$(CUSTOM_LINK) -o tmp_$<.ll tmp_$<.ll $(muslcFiles) 
 ifeq ($(MAKECMDGOALS), gem5)
 	$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) --debug-pass=Arguments  -S < tmp_$<.ll > $@
 else
-	#$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) -load $(ZRAY_BIN_PATH)/tool.so -tool_pass --debug-pass=Arguments  -S < tmp_$<.ll > $@
-	$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) --debug-pass=Arguments  -S < tmp_$<.ll > $@
+	$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) -load $(ZRAY_BIN_PATH)/tool.so -tool_pass --debug-pass=Arguments  -S < tmp_$<.ll > $@
 endif
 
 $(ZRAY_BIN_PATH)/%: %.ll $(ZRAY_BIN_PATH)/tool_dyn.ll
@@ -55,13 +67,13 @@ $(ZRAY_BIN_PATH)/%: %.ll $(ZRAY_BIN_PATH)/tool_dyn.ll
 	$(CUSTOM_LINK) -o linked_$<.ll $^ 
 	#Link into binary, zip metadata and concat
 ifeq ($(MAKECMDGOALS), gem5)
-	$(CUSTOM_CC) -o $@ linked_$<.ll -std=c++14 $(flags)
+	$(CUSTOM_CC) -o $@ linked_$<.ll -std=c++14 $(flags) $(muslcInclude)
 else
-	$(CUSTOM_CC) -o $@ linked_$<.ll -std=c++14 $(flags)
+	$(CUSTOM_CC) -o $@ linked_$<.ll -std=c++14 $(flags) $(muslcInclude)
 	#zip tool_file.zip tool_file
 	#cat $@_tmp tool_file.zip > $@
 	#chmod +x $@
-	##Cleanup
+	#Cleanup
 	#rm $@_tmp tool_file tool_file.zip
 endif
 
