@@ -4,8 +4,12 @@
 		../bin/diamond \
 		../bin/mem \
 		../bin/nestedLoop
+muslcPath=../../muslc
+muslcFiles=$(muslcPath)/linked_muslc.ll
 
-#muslcPath="../muslc"
+muslcIncludePath=$(muslcPath)/inc
+muslcInclude=-I$(muslcIncludePath)/src/internal -I$(muslcIncludePath)/include -I$(muslcIncludePath)/obj/include -I$(muslcIncludePath)/arch/x86_64 -I$(muslcIncludePath)/arch/generic -I$(muslcIncludePath)/obj/src/internal -I $(muslcIncludePath)/malloc/mallocng
+#muslcFiles=$(muslcPath)/rand.ll $(muslcPath)/malloc.ll $(muslcPath)/__lock.ll
 #muslcFiles=$(muslcPath)/rand.ll $(muslcPath)/atol.ll $(muslcPath)/strtol.ll $(muslcPath)/shgetc.ll $(muslcPath)/intscan.ll
 
 #muslcFiles = ./muslc/gettimeofday.ll
@@ -45,7 +49,7 @@ $(ZRAY_BIN_PATH):
 #Test programs
 %.ll: %.cc $(ZRAY_BIN_PATH)/tool.so
 	$(CUSTOM_CC) -o tmp_$<.ll $< -std=c++14 $(CFLAGS) $(flags) $(optLevel) -S -emit-llvm -fverbose-asm 
-	$(CUSTOM_LINK) -o tmp_$<.ll tmp_$<.ll $(muslcFiles) -I$(muslPath)/include -I$(muslPath)/src/internal
+	$(CUSTOM_LINK) -o tmp_$<.ll tmp_$<.ll $(muslcFiles)
 
 ifeq ($(MAKECMDGOALS), gem5)
 	$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) --debug-pass=Arguments  -S < tmp_$<.ll > $@
@@ -55,11 +59,12 @@ endif
 
 %.ll: %.c $(ZRAY_BIN_PATH)/tool.so
 	$(CUSTOM_C) -o tmp_$<.ll $< $(CFLAGS) $(flags) $(optLevel) -S -emit-llvm -fverbose-asm $(muslcInclude)
-	$(CUSTOM_LINK) -o tmp_$<.ll tmp_$<.ll $(muslcFiles) 
+	$(CUSTOM_LINK) -o tmp_$<.ll tmp_$<.ll $(muslcFiles)
 ifeq ($(MAKECMDGOALS), gem5)
 	$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) --debug-pass=Arguments  -S < tmp_$<.ll > $@
 else
-	$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) -load $(ZRAY_BIN_PATH)/tool.so -tool_pass --debug-pass=Arguments  -S < tmp_$<.ll > $@
+	#$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) --debug-pass=Arguments  -S < tmp_$<.ll > $@
+	$(CUSTOM_OPT) -enable-new-pm=0 $(optLevel) $(requiredPasses) -load $(ZRAY_BIN_PATH)/tool.so --loophoist=false --postdomset=true --mirpass=true -tool_pass --debug-pass=Arguments  -S < tmp_$<.ll > $@
 endif
 
 $(ZRAY_BIN_PATH)/%: %.ll $(ZRAY_BIN_PATH)/tool_dyn.ll

@@ -50,16 +50,16 @@ void random_shuffle(Node** list, Int N)
 
 // Returns nanoseconds per element.
 double bench(Int N, Int iters) {
-#ifdef GEM5_BUILD
-    printf("dumping stats\n");
-    m5_dump_reset_stats(0,0);
-#elif GEM5_ZRAY_BUILD
-    printf("dumping stats\n");
-    m5_dump_reset_stats(0,0);
-#pragma begin_instrument 10
-#else
-#pragma begin_instrument 10
-#endif
+//#ifdef GEM5_BUILD
+//    printf("dumping stats\n");
+//    m5_dump_reset_stats(0,0);
+//#elif GEM5_ZRAY_BUILD
+//    printf("dumping stats\n");
+//    m5_dump_reset_stats(0,0);
+//#pragma begin_instrument 10
+//#else
+//#pragma begin_instrument 10
+//#endif
 	// Allocate all the memory continuously so we aren't affected by the particulars of the system allocator:
 	Node* memory = (Node*)malloc(N * sizeof(Node));
 
@@ -102,14 +102,14 @@ double bench(Int N, Int iters) {
 	Int dur = clock() - start;
 	double ns = 1e9 * dur / CLOCKS_PER_SEC;
 
-#ifdef GEM5_BUILD 
-    m5_dump_reset_stats(0,0);
-#elif GEM5_ZRAY_BUILD
-#pragma end_instrument 10
-    m5_dump_reset_stats(0,0);
-#else
-#pragma end_instrument 10
-#endif
+//#ifdef GEM5_BUILD 
+//    m5_dump_reset_stats(0,0);
+//#elif GEM5_ZRAY_BUILD
+//#pragma end_instrument 10
+//    m5_dump_reset_stats(0,0);
+//#else
+//#pragma end_instrument 10
+//#endif
 
 	return ns / (N * iters);
 }
@@ -122,22 +122,22 @@ int main(int argc, const char * argv[])
 
 	Int stopsPerFactor = 4; // For every power of 2, how many measurements do we do?
 	Int minElemensFactor = 6;  // First measurement is 2^this number of elements.
-	Int maxElemsFactor = 23; // Last measurement is 2^this number of elements. 30 == 16GB of memory
+	Int maxElemsFactor = 29; // Last measurement is 2^this number of elements. 30 == 16GB of memory
 	//Int elemsPerMeasure = Int(1) << 28; // measure enough times to process this many elements (to get a good average)
 
 	Int min = stopsPerFactor * minElemensFactor;
 	Int max = stopsPerFactor * maxElemsFactor;
 
-//#ifdef GEM5_BUILD
-//    printf("dumping stats\n");
-//    m5_dump_reset_stats(0,0);
-//#elif GEM5_ZRAY_BUILD
-//    printf("dumping stats\n");
-//    m5_dump_reset_stats(0,0);
-//#pragma begin_instrument 15
-//#else
-//#pragma begin_instrument 15
-//#endif
+#ifdef GEM5_BUILD
+    printf("dumping stats\n");
+    m5_dump_reset_stats(0,0);
+#elif GEM5_ZRAY_BUILD
+    printf("dumping stats\n");
+    m5_dump_reset_stats(0,0);
+#pragma begin_instrument 15
+#else
+#pragma begin_instrument 15
+#endif
 	for (Int ei=min; ei<=max; ++ei) {
 		Int N = (Int)floor(pow(2.0, (double)ei / stopsPerFactor) + 0.5);
 		//Int reps = elemsPerMeasure / N;
@@ -146,12 +146,12 @@ int main(int argc, const char * argv[])
 		double ans = bench(N, reps);
 		printf("%llu   %f   # (N=%llu, reps=%llu) %llu/%llu\n", N*sizeof(Node), ans, N, reps, ei-min+1, max-min+1);
 	}
-//#ifdef GEM5_BUILD 
-//    m5_dump_reset_stats(0,0);
-//#elif GEM5_ZRAY_BUILD
-//#pragma end_instrument 15
-//    m5_dump_reset_stats(0,0);
-//#else
-//#pragma end_instrument 15
-//#endif
+#ifdef GEM5_BUILD 
+    m5_dump_reset_stats(0,0);
+#elif GEM5_ZRAY_BUILD
+#pragma end_instrument 15
+    m5_dump_reset_stats(0,0);
+#else
+#pragma end_instrument 15
+#endif
 }
